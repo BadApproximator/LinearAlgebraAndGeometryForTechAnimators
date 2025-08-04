@@ -10,20 +10,32 @@ export class Point2D {
         this.x = x;
         this.y = y;
     }
+
+    copy(): Point2D {
+        return new Point2D(this.x, this.y);
+    }
+
+    set(x: R, y: R) {
+        this.x = x;
+        this.y = y;
+    }
 }
 
 export class Vector2D {
     x: R;
     y: R;
 
-    constructor(x: R = 0, y: R = 0) {
+    constructor(vectorSpace: VectorSpace, x: R = 0, y: R = 0) {
+        this.vectorSpace = vectorSpace;
         this.x = x;
         this.y = y;
     }
 
     copy(): Vector2D {
-        return new Vector2D(this.x, this.y);
+        return new Vector2D(this.vectorSpace, this.x, this.y);
     }
+
+    private vectorSpace: VectorSpace;
 }
 
 export class Basis {
@@ -38,7 +50,7 @@ export class Basis {
 
 export class VectorSpace {
     
-    constructor(basis: Basis = new Basis(new Vector2D(1, 0), new Vector2D(0, 1))) {
+    constructor(basis: Basis = new Basis(new Vector2D(this, 1, 0), new Vector2D(this, 0, 1))) {
         this.basis = basis;
     }
 
@@ -47,11 +59,11 @@ export class VectorSpace {
     }
 
     add(v1: Vector2D, v2: Vector2D): Vector2D {
-        return new Vector2D(v1.x + v2.x, v1.y + v2.y);
+        return new Vector2D(this, v1.x + v2.x, v1.y + v2.y);
     }
 
     scale(v: Vector2D, lambda: number): Vector2D {
-        return new Vector2D(v.x * lambda, v.y * lambda);
+        return new Vector2D(this, v.x * lambda, v.y * lambda);
     }
 
 // private
@@ -86,7 +98,7 @@ export class AffineSpace {
 
 export class CoordinateSystem2D {
 
-    constructor(affineSpace: AffineSpace = new AffineSpace(), origin: Point2D = new Vector2D()) {
+    constructor(affineSpace: AffineSpace = new AffineSpace(), origin: Point2D = new Point2D()) {
         this.affineSpace = affineSpace;
         this.origin = origin;
     }
@@ -104,7 +116,16 @@ export class CoordinateSystem2D {
     }
 
     public getRadiusVector(p: Point2D): Vector2D {
-        return new Vector2D(p.x, p.y);
+        return new Vector2D(this.affineSpace.getVectorSpace(), p.x, p.y);
+    }
+
+    public getPointByRadiusVector(v: Vector2D): Point2D {
+        return new Point2D(v.x, v.y);
+    }
+
+    public movePointAtOrigin(p: Point2D) {
+        p.x = this.origin.x;
+        p.y = this.origin.y;
     }
 
 // private
