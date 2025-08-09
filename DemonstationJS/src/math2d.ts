@@ -1,3 +1,5 @@
+import { Vector2DBase } from "./baseMath.js";
+
 // ----- Algebraical and Geometrical Objects ----- //
 
 type R = number
@@ -21,21 +23,17 @@ export class Point2D {
     }
 }
 
-export class Vector2D {
-    x: R;
-    y: R;
-
-    constructor(vectorSpace: VectorSpace, x: R = 0, y: R = 0) {
-        this.vectorSpace = vectorSpace;
-        this.x = x;
-        this.y = y;
+export class Vector2D extends Vector2DBase {
+    constructor(/* vectorSpace: VectorSpace, */x: R = 0, y: R = 0) {
+        // this.vectorSpace = vectorSpace;
+        super(x, y);
     }
 
     copy(): Vector2D {
-        return new Vector2D(this.vectorSpace, this.x, this.y);
+        return new Vector2D(/* this.vectorSpace,*/ this.x, this.y);
     }
 
-    private vectorSpace: VectorSpace;
+    // private vectorSpace: VectorSpace;
 }
 
 export class Basis {
@@ -49,24 +47,24 @@ export class Basis {
 }
 
 export class VectorSpace {
-    
-    constructor(basis: Basis = new Basis(new Vector2D(this, 1, 0), new Vector2D(this, 0, 1))) {
+
+    constructor(basis: Basis = new Basis(new Vector2D(/* this, */1, 0), new Vector2D(/*this, */0, 1))) {
         this.basis = basis;
     }
 
-    getBasis() : Basis {
+    getBasis(): Basis {
         return this.basis;
     }
 
     add(v1: Vector2D, v2: Vector2D): Vector2D {
-        return new Vector2D(this, v1.x + v2.x, v1.y + v2.y);
+        return new Vector2D(/* this, */v1.x + v2.x, v1.y + v2.y);
     }
 
     scale(v: Vector2D, lambda: number): Vector2D {
-        return new Vector2D(this, v.x * lambda, v.y * lambda);
+        return new Vector2D(/* this,  */v.x * lambda, v.y * lambda);
     }
 
-// private
+    // private
 
     private basis: Basis;
 }
@@ -74,7 +72,7 @@ export class VectorSpace {
 // In common, Affine Space is pair (A, V) with operations, where A - set of points, V - vector space,
 // but in our case, A is set of screen pixels, so we shouldn't point it explicitly.
 export class AffineSpace {
-    
+
     constructor(vSpace: VectorSpace = new VectorSpace()) {
         this.vSpace = vSpace;
     }
@@ -91,7 +89,7 @@ export class AffineSpace {
         return new Point2D(p.x + v.x, p.y + v.y);
     }
 
-// private
+    // private
 
     private vSpace: VectorSpace;
 }
@@ -116,7 +114,7 @@ export class CoordinateSystem2D {
     }
 
     public getRadiusVector(p: Point2D): Vector2D {
-        return new Vector2D(this.affineSpace.getVectorSpace(), p.x, p.y);
+        return new Vector2D(/* this.affineSpace.getVectorSpace(), */p.x, p.y);
     }
 
     public getPointByRadiusVector(v: Vector2D): Point2D {
@@ -128,8 +126,8 @@ export class CoordinateSystem2D {
         p.y = this.origin.y;
     }
 
-// private
+    // private
 
     private affineSpace: AffineSpace;
-    private origin:      Point2D;     // some point in Affine Space
+    private origin: Point2D;     // some point in Affine Space
 }
