@@ -238,3 +238,33 @@ export function DrawCoordinateSystemGrid2D(canvas: HTMLCanvasElement, canvasCtx:
     DrawAxes(canvas, canvasCtx, cs);
     DrawBasis(canvas, canvasCtx, cs);
 }
+
+
+
+export class CoodinateSystemRenderer {
+    canvas: HTMLCanvasElement;
+    canvasCtx: CanvasRenderingContext2D;
+    cs: CoordinateSystem2D;
+
+    constructor(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D, cs: CoordinateSystem2D) {
+        this.canvas = canvas;
+        this.canvasCtx = canvasCtx;
+        this.cs = cs;
+    }
+
+    draw() {
+        DrawCoordinateSystemGrid2D(this.canvas, this.canvasCtx, this.cs);
+    }
+
+    mouseMoveHandle(e: MouseEvent) {
+
+    }
+
+    mouseDownHandle(e: MouseEvent) {
+
+    }
+
+    mouseUpHandle(e: MouseEvent) {
+
+    }
+}

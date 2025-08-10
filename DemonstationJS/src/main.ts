@@ -3,12 +3,8 @@
  * Use 'npx tsc --watch' for auto recompilation
  */
 
-import { assert } from "./messages.js";
-import { CoordinateSystem2D, Point2D, Basis, Vector2D, VectorSpace, AffineSpace } from "./math2d.js";
-import { ScreenPoint, ScreenVector, ScreenToPointsConverter } from "./screenPoints.js"
-import { RotateVector, IsVectorZero } from "./baseMath.js";
-import { DrawCoordinateSystemGrid2D } from "./drawing.js";
-import { screenToPointsConverter, InitScreenToPointsConverter } from "./globalObject.js";
+import { CoordinateSystem2D } from "./math2d.js";
+import { coordinateSystemRenderer, InitCoordinateSystemRenderer, InitScreenToPointsConverter } from "./globalObject.js";
 
 function init() {
     const canvas = document.getElementById("coordSystem") as HTMLCanvasElement;
@@ -31,7 +27,9 @@ function init() {
     InitScreenToPointsConverter(canvas);
 
     const defaultCartesianCS: CoordinateSystem2D = new CoordinateSystem2D();
-    DrawCoordinateSystemGrid2D(canvas, ctx, defaultCartesianCS);
+    InitCoordinateSystemRenderer(canvas, ctx, defaultCartesianCS);  
+
+    coordinateSystemRenderer.draw();
 }
 
 init();
