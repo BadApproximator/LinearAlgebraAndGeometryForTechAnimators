@@ -41,11 +41,13 @@ export class ScreenVector extends Vector2DBase {
     add(v: ScreenVector) {
         this.x += v.x;
         this.y += v.y;
+        return this;
     }
 
     scale(lambda: number) {
         this.x *= lambda;
         this.y *= lambda;
+        return this;
     }
 
     length(): number {

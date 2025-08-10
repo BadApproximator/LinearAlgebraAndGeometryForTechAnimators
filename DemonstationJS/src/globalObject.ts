@@ -14,6 +14,7 @@ export function InitScreenToPointsConverter(canvas: HTMLCanvasElement) {
 // It is possible to have multiple coordinate systems, then we should have an Array<CoodinateSystemRenderer>
 export function InitCoordinateSystemRenderer(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D, cs: CoordinateSystem2D) {
     coordinateSystemRenderer = new CoodinateSystemRenderer(canvas, canvasCtx, cs);
+    coordinateSystemRenderer.init();
 
     canvas.addEventListener("mousemove", coordinateSystemRenderer.mouseMoveHandle.bind(coordinateSystemRenderer));
     canvas.addEventListener("mousedown", coordinateSystemRenderer.mouseDownHandle.bind(coordinateSystemRenderer));

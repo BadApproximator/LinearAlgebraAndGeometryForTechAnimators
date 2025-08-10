@@ -1,10 +1,8 @@
 import { assert } from "./messages.js";
 import { CoordinateSystem2D, Point2D, Basis, Vector2D, VectorSpace, AffineSpace } from "./math2d.js";
 import { ScreenPoint, ScreenVector, ScreenToPointsConverter } from "./screenPoints.js"
-import { RotateVector, IsVectorZero, dist } from "./baseMath.js";
+import { rotateVector, isVectorZero, dist, dist2 } from "./baseMath.js";
 import { screenToPointsConverter } from "./globalObject.js";
-
-// const canvas = document.getElementById("coordSystem") as HTMLCanvasElement;
 
 class Style {
     color: string;
@@ -58,6 +56,13 @@ export class CoodinateSystemRenderer {
         this.cs = cs;
     }
 
+    init() {
+        this.initGrid();
+        this.initAxes();
+        this.initBasis();
+        this.draw();
+    }
+
     draw() {
         this.drawCoordinateSystemGrid2D(this.canvas, this.canvasCtx, this.cs);
     }
@@ -65,297 +70,424 @@ export class CoodinateSystemRenderer {
     mouseMoveHandle(e: MouseEvent) {
         const pos: ScreenPoint = new ScreenPoint(e.offsetX, e.offsetY);
 
-        if (this.draggingHandle) {
-            this.draw();
-            return;
+        for (const obj of this.screenObjects) {
+            obj.mouseMoveHandle(pos);
         }
 
-        this.hoveredHandle = this.getHandleAtPosition(pos);
         this.draw();
     }
 
     mouseDownHandle(e: MouseEvent) {
         const pos: ScreenPoint = new ScreenPoint(e.offsetX, e.offsetY);
-        this.draggingHandle = this.getHandleAtPosition(pos);
+        
+        for (const obj of this.screenObjects) {
+            obj.mouseDownHandle(pos);
+        }
+        
         this.draw();
     }
 
     mouseUpHandle(e: MouseEvent) {
-        this.draggingHandle = null;
+        const pos: ScreenPoint = new ScreenPoint(e.offsetX, e.offsetY);
+        
+        for (const obj of this.screenObjects) {
+            obj.mouseUpHandle(pos);
+        }
+
         this.draw();
     }
 
     // private
 
-    private HIT_RADIUS_PX = 10;
-    private VECTOR_HANDLER_RADIUS_PX = 3;
-
     private canvas: HTMLCanvasElement;
     private canvasCtx: CanvasRenderingContext2D;
     private cs: CoordinateSystem2D;
 
-    private hoveredHandle: HandleType = null;
-    private draggingHandle: HandleType = null;
+    private screenObjects: Array<ScreenObject> = new Array<ScreenObject>();
 
-    private getHandleAtPosition(p: ScreenPoint): HandleType {
+    private initGrid() {
         const origin = screenToPointsConverter.getScreenCoord(this.cs.getOrigin());
-        const e1end = origin.copy().addVector(screenToPointsConverter.convertVector2dToScreenVector(this.cs.getBasis().e1));
-        const e2end = origin.copy().addVector(screenToPointsConverter.convertVector2dToScreenVector(this.cs.getBasis().e2));
-
-        if (dist(p, e1end) < this.HIT_RADIUS_PX) return "e1";
-        if (dist(p, e2end) < this.HIT_RADIUS_PX) return "e2";
-
-        return null;
+        const e1 = screenToPointsConverter.convertVector2dToScreenVector(this.cs.getBasis().e1);
+        const e2 = screenToPointsConverter.convertVector2dToScreenVector(this.cs.getBasis().e2);
+        const grid: GridObject = new GridObject(origin, e1, e2);
+        this.screenObjects.push(grid);
     }
 
-    private drawGrid(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D, cs: CoordinateSystem2D) {
-        const basis: Basis = cs.getBasis();
-        const origin: Point2D = cs.getOrigin();
-        const affineSpace: AffineSpace = cs.getAffineSpace();
-        const vectorSpace: VectorSpace = affineSpace.getVectorSpace();
-
-        const e1: Vector2D = basis.e1.copy();
-        const e2: Vector2D = basis.e2.copy();
-        const e1Negative: Vector2D = vectorSpace.scale(e1, -1);
-        const e2Negative: Vector2D = vectorSpace.scale(e2, -1);
-
-        canvasCtx.beginPath();
-
-        let floatPoint: Point2D = origin.copy();
-
-        // lines parallel e2
-        const se1 = screenToPointsConverter.convertVector2dToScreenVector(e1);
-        const se2 = screenToPointsConverter.convertVector2dToScreenVector(e2);
-
-        this.drawLine(canvas, canvasCtx, screenToPointsConverter.getScreenCoord(origin), se1, gridLineStyle);
-
-        while (screenToPointsConverter.isPoint2DInCanvas(canvas, floatPoint)) {
-            this.drawLine(canvas, canvasCtx, screenToPointsConverter.getScreenCoord(floatPoint), se2, gridLineStyle);
-            floatPoint = affineSpace.addVectorToPoint(floatPoint, e1);
-        }
-
-        cs.movePointAtOrigin(floatPoint);
-        while (screenToPointsConverter.isPoint2DInCanvas(canvas, floatPoint)) {
-            this.drawLine(canvas, canvasCtx, screenToPointsConverter.getScreenCoord(floatPoint), se2, gridLineStyle);
-            floatPoint = affineSpace.addVectorToPoint(floatPoint, e1Negative);
-        }
-
-        cs.movePointAtOrigin(floatPoint);
-        while (screenToPointsConverter.isPoint2DInCanvas(canvas, floatPoint)) {
-            this.drawLine(canvas, canvasCtx, screenToPointsConverter.getScreenCoord(floatPoint), se1, gridLineStyle);
-            floatPoint = affineSpace.addVectorToPoint(floatPoint, e2);
-        }
-
-        cs.movePointAtOrigin(floatPoint);
-        while (screenToPointsConverter.isPoint2DInCanvas(canvas, floatPoint)) {
-            this.drawLine(canvas, canvasCtx, screenToPointsConverter.getScreenCoord(floatPoint), se1, gridLineStyle);
-            floatPoint = affineSpace.addVectorToPoint(floatPoint, e2Negative);
-        }
-
-        canvasCtx.stroke();
-    }
-
-    private drawAxes(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D, cs: CoordinateSystem2D) {
-        const basis: Basis = cs.getBasis();
-        const origin: Point2D = cs.getOrigin();
-
-        const e1: Vector2D = basis.e1.copy();
-        const e2: Vector2D = basis.e2.copy();
-
-        canvasCtx.beginPath();
-
-        // lines parallel e2
-        const se1 = screenToPointsConverter.convertVector2dToScreenVector(e1);
-        const se2 = screenToPointsConverter.convertVector2dToScreenVector(e2);
-
-        const screenOrigin: ScreenPoint = screenToPointsConverter.getScreenCoord(origin);
-
-        this.drawLine(canvas, canvasCtx, screenOrigin, se1, axisLineStyle);
-        this.drawLine(canvas, canvasCtx, screenOrigin, se2, axisLineStyle);
-    }
-
-    private drawSegmentByTwoScreenPoints(
-        canvas: HTMLCanvasElement,
-        canvasCtx: CanvasRenderingContext2D,
-        p1: ScreenPoint,
-        p2: ScreenPoint,
-        style: LineStyle,
-    ) {
-        canvasCtx.save();
-
-        // apply style
-        if (style?.color) canvasCtx.strokeStyle = style.color;
-        if (style?.width) canvasCtx.lineWidth = style.width;
-
-        canvasCtx.beginPath();
-
-        canvasCtx.moveTo(p1.x, p1.y);
-        canvasCtx.lineTo(p2.x, p2.y);
-
-        canvasCtx.stroke();
-
-        canvasCtx.restore();
-    }
-
-    private drawArrowHeadfunction(
-        canvas: HTMLCanvasElement,
-        canvasCtx: CanvasRenderingContext2D,
-        p: ScreenPoint,
-        dir: ScreenVector,
-        style: VectorStyle,
-    ) {
-        assert(!IsVectorZero(dir), "Direction has to be non zero vector!");
-
-        dir.normalize();
-        dir.scale(-style.arrowSizePix);
-
-        const v1 = RotateVector(dir, style.arrowAngleRad);
-        const v2 = RotateVector(dir, -style.arrowAngleRad);
-
-        const p1 = p.copy().addVector(v1 as ScreenVector);
-        const p2 = p.copy().addVector(v2 as ScreenVector);
-
-        canvasCtx.save();
-
-        // apply style
-        if (style?.color) canvasCtx.strokeStyle = style.color;
-        if (style?.width) canvasCtx.lineWidth = style.width;
-
-        canvasCtx.beginPath();
-
-        canvasCtx.moveTo(p.x, p.y);
-        canvasCtx.lineTo(p1.x, p1.y);
-
-        canvasCtx.moveTo(p.x, p.y);
-        canvasCtx.lineTo(p2.x, p2.y);
-
-        canvasCtx.stroke();
-
-        canvasCtx.restore();
-    }
-
-    private drawVector(
-        canvas: HTMLCanvasElement,
-        canvasCtx: CanvasRenderingContext2D,
-        origin: Point2D,
-        vector: Vector2D,
-        style: VectorStyle,
-        vectorType: VectorType,
-        handlerType: HandleType,
-    ) {
-        assert(!IsVectorZero(vector), "Direction has to be non zero vector!");
-
-        const sOrigin = screenToPointsConverter.getScreenCoord(origin);
-        const sVector = screenToPointsConverter.convertVector2dToScreenVector(vector);
-        const vectorEnd = sOrigin.copy().addVector(sVector);
-
-        this.drawSegmentByTwoScreenPoints(canvas, canvasCtx, sOrigin, vectorEnd, style);
-        this.drawArrowHeadfunction(canvas, canvasCtx, vectorEnd, sVector, style);
-
-        // handlers
-        if (vectorType === VectorType.Basis) {
-            let state: HandleState;
-            if (this.draggingHandle === handlerType) {
-                state = HandleState.Dragging;
-            } else if (this.hoveredHandle === handlerType) {
-                state = HandleState.Hovered;
-            } else {
-                state = HandleState.None;
-            }
-            this.drawHandle(vectorEnd, state);
-        }
-    }
-
-    drawHandle(pos: ScreenPoint, state: HandleState) {
-        this.canvasCtx.save();
-        this.canvasCtx.beginPath();
-        this.canvasCtx.arc(pos.x, pos.y, this.VECTOR_HANDLER_RADIUS_PX, 0, Math.PI * 2);
-
-        switch (state) {
-            case HandleState.Dragging: {
-                this.canvasCtx.fillStyle = vectorHandlerStyle.draggingColor;
-                break;
-            }
-            case HandleState.Hovered: {
-                this.canvasCtx.fillStyle = vectorHandlerStyle.hoveredColor;
-                break;
-            }
-            default: {
-                this.canvasCtx.fillStyle = vectorHandlerStyle.color;
-            }
-        }
-        this.canvasCtx.fill();
-        this.canvasCtx.restore();
-    }
-
-    drawBasis(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D, cs: CoordinateSystem2D) {
-        const basis: Basis = cs.getBasis();
-        const origin = cs.getOrigin();
-        const e1 = basis.e1;
-        const e2 = basis.e2;
-
-        this.drawVector(canvas, canvasCtx, origin, e1, basisVectorStyle, VectorType.Basis, "e1");
-        this.drawVector(canvas, canvasCtx, origin, e2, basisVectorStyle, VectorType.Basis, "e2");
-    }
-
-    /**
-     * Draw line through the point with the direction
-     */
-    drawLine(
-        canvas: HTMLCanvasElement,
-        canvasCtx: CanvasRenderingContext2D,
-        p: ScreenPoint,
-        v: ScreenVector,
-        style: LineStyle,
-    ) {
-        assert(!IsVectorZero(v), "Direction has to be non zero vector!");
-
-        // apply style
-        if (style?.color) canvasCtx.strokeStyle = style.color;
-        if (style?.width) canvasCtx.lineWidth = style.width;
+    private initAxes() {
+        const origin = screenToPointsConverter.getScreenCoord(this.cs.getOrigin());
+        const e1 = screenToPointsConverter.convertVector2dToScreenVector(this.cs.getBasis().e1);
+        const e2 = screenToPointsConverter.convertVector2dToScreenVector(this.cs.getBasis().e2);
         
-        
-        let floatPoint: ScreenPoint = p.copy();
-        let dir: ScreenVector = v.copy();
-        dir.normalize();
-        let p1, p2: ScreenPoint;
-        while (screenToPointsConverter.isScreenPointInCanvas(canvas, floatPoint)) {
-            floatPoint.addVector(dir);
-        }
-        p1 = floatPoint.copy();
+        const xAxis: AxisObject = new AxisObject(origin, e1);
+        const yAxis: AxisObject = new AxisObject(origin, e2);
 
-        floatPoint.set(p.x, p.y);
-        dir.scale(-1);
-        while (screenToPointsConverter.isScreenPointInCanvas(canvas, floatPoint)) {
-            floatPoint.addVector(dir);
-        }
-        p2 = floatPoint.copy();
-
-        canvasCtx.beginPath();
-
-        canvasCtx.moveTo(p1.x, p1.y);
-        canvasCtx.lineTo(p2.x, p2.y);
-
-        canvasCtx.stroke();
+        this.screenObjects.push(xAxis, yAxis);
     }
 
+    private initBasis() {
+        const origin = screenToPointsConverter.getScreenCoord(this.cs.getOrigin());
+        const e1 = screenToPointsConverter.convertVector2dToScreenVector(this.cs.getBasis().e1);
+        const e2 = screenToPointsConverter.convertVector2dToScreenVector(this.cs.getBasis().e2);
+
+        this.screenObjects.push(
+            new BasisVectorObject(origin.copy(), origin.copy().addVector(e1)),
+            new BasisVectorObject(origin.copy(), origin.copy().addVector(e2))
+        );
+    }
 
     drawCoordinateSystemGrid2D(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D, cs: CoordinateSystem2D) {
-        this.drawGrid(canvas, canvasCtx, cs);
-        this.drawAxes(canvas, canvasCtx, cs);
-        this.drawBasis(canvas, canvasCtx, cs);
+        for (const obj of this.screenObjects) {
+            obj.draw(canvas, canvasCtx);
+        }
     }
 }
 
-type HandleType = "e1" | "e2" | null;
-
-enum VectorType {
-    None = 1,
-    Basis,
-}
 
 enum HandleState {
     None,
     Hovered,
     Dragging,
+}
+
+abstract class ScreenObjectHandler {
+    obj: ScreenObject;
+
+    constructor(obj: ScreenObject) {
+        this.obj = obj;
+    }
+    draw(canvasCtx: CanvasRenderingContext2D) {}
+
+    // private
+
+    mouseMoveHandle(cursorPos: ScreenPoint) { }
+    mouseDownHandle(cursorPos: ScreenPoint) { }
+    mouseUpHandle(cursorPos: ScreenPoint) { }
+}
+
+class VectorEndHandler extends ScreenObjectHandler {
+    style: HandlerStyle = vectorHandlerStyle;
+    state: HandleState = HandleState.None;
+
+    Update(cursorPos: ScreenPoint) {
+
+    }
+
+    draw(canvasCtx: CanvasRenderingContext2D) {
+        const vObj = this.obj as VectorObject;
+        this.drawHandler(canvasCtx, vObj.head, this.state);
+    }
+
+    drawHandler(canvasCtx: CanvasRenderingContext2D, pos: ScreenPoint, state: HandleState) {
+        canvasCtx.save();
+        canvasCtx.beginPath();
+        canvasCtx.arc(pos.x, pos.y, this.VECTOR_HANDLER_RADIUS_PX, 0, Math.PI * 2);
+
+        switch (state) {
+            case HandleState.Dragging: {
+                canvasCtx.fillStyle = vectorHandlerStyle.draggingColor;
+                break;
+            }
+            case HandleState.Hovered: {
+                canvasCtx.fillStyle = vectorHandlerStyle.hoveredColor;
+                break;
+            }
+            default: {
+                canvasCtx.fillStyle = vectorHandlerStyle.color;
+            }
+        }
+        canvasCtx.fill();
+        canvasCtx.restore();
+    }
+
+    mouseMoveHandle(cursorPos: ScreenPoint) {
+        if (this.state === HandleState.Dragging) {
+            this.drag(cursorPos);
+            return;
+        }
+
+        const vObj = this.obj as VectorObject;
+        const isCursorNear = dist2(cursorPos, vObj.head) < this.HIT_RADIUS_PX * this.HIT_RADIUS_PX;
+
+        if (this.state === HandleState.None && isCursorNear) {
+            this.setState(HandleState.Hovered);
+            return;
+        }
+
+        if (this.state === HandleState.Hovered && !isCursorNear) {
+            this.setState(HandleState.None);
+            return;
+        }
+    }
+    mouseDownHandle(cursorPos: ScreenPoint) { }
+    mouseUpHandle(cursorPos: ScreenPoint) { }
+
+    // private
+
+    private readonly HIT_RADIUS_PX = 10;
+    private readonly VECTOR_HANDLER_RADIUS_PX = 3;
+
+    private drag(pos: ScreenPoint) {
+
+    }
+
+    private setState(state: HandleState) {
+        this.state = state;
+    }
+}
+
+
+abstract class ScreenObject {
+    id: string;
+    handlers: Array<ScreenObjectHandler> = new Array<ScreenObjectHandler>();
+    style?: Style;
+
+    constructor() {
+        this.id = "ScreenObj" + crypto.randomUUID();
+    }
+
+    isCursorNear(p: ScreenPoint): boolean { return false };
+    draw(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D) { /* Add error message */ }
+
+    mouseMoveHandle(cursorPos: ScreenPoint) {
+        for(const h of this.handlers) {
+            h.mouseMoveHandle(cursorPos);
+        }
+    }
+
+    mouseDownHandle(cursorPos: ScreenPoint) {
+        for(const h of this.handlers) {
+            h.mouseDownHandle(cursorPos);
+        }
+    }
+
+    mouseUpHandle(cursorPos: ScreenPoint) {
+        for(const h of this.handlers) {
+            h.mouseUpHandle(cursorPos);
+        }
+    }
+}
+
+class VectorObject extends ScreenObject {
+    tail: ScreenPoint; // starting point
+    head: ScreenPoint; // endging point
+
+    constructor(tail: ScreenPoint, head: ScreenPoint) {
+        super();
+        this.tail = tail;
+        this.head = head;
+    }
+
+    draw(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D) {
+        assert(dist(this.tail, this.head) > Number.EPSILON, "Can't draw zero vector!");
+
+        drawSegmentByTwoScreenPoints(canvas, canvasCtx, this.tail, this.head, basisVectorStyle);
+        drawArrowHeadfunction(canvas, canvasCtx, this.head, new ScreenVector(this.head.x - this.tail.x, this.head.y - this.tail.y), basisVectorStyle);
+    }
+
+    mouseMoveHandle(cursorPos: ScreenPoint) {
+        super.mouseMoveHandle(cursorPos);
+    }
+    mouseDownHandle(cursorPos: ScreenPoint) {
+        super.mouseDownHandle(cursorPos);
+    }
+    mouseUpHandle(cursorPos: ScreenPoint) {
+        super.mouseUpHandle(cursorPos);
+    }
+
+}
+
+class BasisVectorObject extends VectorObject {
+    constructor(tail: ScreenPoint, head: ScreenPoint) {
+        super(tail, head);
+
+        this.handlers.push(new VectorEndHandler(this));
+    }
+
+    draw(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D) {
+        super.draw(canvas, canvasCtx);
+        this.drawHandlers(canvasCtx);
+    }
+
+    private drawHandlers(canvasCtx: CanvasRenderingContext2D) {
+        for(const handler of this.handlers) {
+            handler.draw(canvasCtx);
+        }
+    }
+}
+
+class AxisObject extends ScreenObject {
+    origin: ScreenPoint;
+    e: ScreenVector;
+
+    constructor(origin: ScreenPoint, e: ScreenVector) {
+        super();
+
+        this.origin = origin;
+        this.e = e;
+    }
+
+    draw(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D) {
+        drawLine(canvas, canvasCtx, this.origin, this.e, axisLineStyle);
+    }
+}
+
+class GridObject extends ScreenObject {
+    origin: ScreenPoint;
+    e1: ScreenVector;
+    e2: ScreenVector;
+
+    constructor(origin: ScreenPoint, e1: ScreenVector, e2: ScreenVector) {
+        super();
+
+        this.origin = origin;
+        this.e1 = e1;
+        this.e2 = e2;
+    }
+
+    draw(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D): void {
+        canvasCtx.beginPath();
+
+        let floatPoint: ScreenPoint = this.origin.copy();
+
+        drawLine(canvas, canvasCtx, this.origin, this.e1, gridLineStyle);
+
+        while (screenToPointsConverter.isScreenPointInCanvas(canvas, floatPoint)) {
+            drawLine(canvas, canvasCtx, floatPoint, this.e2, gridLineStyle);
+            floatPoint = floatPoint.addVector(this.e1);
+        }
+
+        const e1Negative = this.e1.copy().scale(-1);
+        const e2Negative = this.e2.copy().scale(-1);
+        floatPoint.set(this.origin.x, this.origin.y);
+        while (screenToPointsConverter.isScreenPointInCanvas(canvas, floatPoint)) {
+            drawLine(canvas, canvasCtx, floatPoint, this.e2, gridLineStyle);
+            floatPoint = floatPoint.addVector(e1Negative);
+        }
+
+        floatPoint.set(this.origin.x, this.origin.y);
+        while (screenToPointsConverter.isScreenPointInCanvas(canvas, floatPoint)) {
+            drawLine(canvas, canvasCtx, floatPoint, this.e1, gridLineStyle);
+            floatPoint = floatPoint.addVector(this.e2);
+        }
+
+        floatPoint.set(this.origin.x, this.origin.y);
+        while (screenToPointsConverter.isScreenPointInCanvas(canvas, floatPoint)) {
+            drawLine(canvas, canvasCtx, floatPoint, this.e1, gridLineStyle);
+            floatPoint = floatPoint.addVector(e2Negative);
+        }
+
+        canvasCtx.stroke();
+    }
+
+}
+
+class PointObject extends ScreenObject {
+
+}
+
+class OriginObject extends PointObject {
+
+}
+
+
+function drawSegmentByTwoScreenPoints(
+    canvas: HTMLCanvasElement,
+    canvasCtx: CanvasRenderingContext2D,
+    p1: ScreenPoint,
+    p2: ScreenPoint,
+    style: LineStyle,
+) {
+    canvasCtx.save();
+
+    // apply style
+    if (style?.color) canvasCtx.strokeStyle = style.color;
+    if (style?.width) canvasCtx.lineWidth = style.width;
+
+    canvasCtx.beginPath();
+
+    canvasCtx.moveTo(p1.x, p1.y);
+    canvasCtx.lineTo(p2.x, p2.y);
+
+    canvasCtx.stroke();
+
+    canvasCtx.restore();
+}
+
+function drawArrowHeadfunction(
+    canvas: HTMLCanvasElement,
+    canvasCtx: CanvasRenderingContext2D,
+    p: ScreenPoint,
+    dir: ScreenVector,
+    style: VectorStyle,
+) {
+    assert(!isVectorZero(dir), "Direction has to be non zero vector!");
+
+    dir.normalize();
+    dir.scale(-style.arrowSizePix);
+
+    const v1 = rotateVector(dir, style.arrowAngleRad);
+    const v2 = rotateVector(dir, -style.arrowAngleRad);
+
+    const p1 = p.copy().addVector(v1 as ScreenVector);
+    const p2 = p.copy().addVector(v2 as ScreenVector);
+
+    canvasCtx.save();
+
+    // apply style
+    if (style?.color) canvasCtx.strokeStyle = style.color;
+    if (style?.width) canvasCtx.lineWidth = style.width;
+
+    canvasCtx.beginPath();
+
+    canvasCtx.moveTo(p.x, p.y);
+    canvasCtx.lineTo(p1.x, p1.y);
+
+    canvasCtx.moveTo(p.x, p.y);
+    canvasCtx.lineTo(p2.x, p2.y);
+
+    canvasCtx.stroke();
+
+    canvasCtx.restore();
+}
+
+
+/**
+ * Draw line through the point with the direction
+ */
+function drawLine(
+    canvas: HTMLCanvasElement,
+    canvasCtx: CanvasRenderingContext2D,
+    p: ScreenPoint,
+    v: ScreenVector,
+    style: LineStyle,
+) {
+    assert(!isVectorZero(v), "Direction has to be non zero vector!");
+
+    // apply style
+    if (style?.color) canvasCtx.strokeStyle = style.color;
+    if (style?.width) canvasCtx.lineWidth = style.width;
+    
+    
+    let floatPoint: ScreenPoint = p.copy();
+    let dir: ScreenVector = v.copy();
+    dir.normalize();
+    let p1, p2: ScreenPoint;
+    while (screenToPointsConverter.isScreenPointInCanvas(canvas, floatPoint)) {
+        floatPoint.addVector(dir);
+    }
+    p1 = floatPoint.copy();
+
+    floatPoint.set(p.x, p.y);
+    dir.scale(-1);
+    while (screenToPointsConverter.isScreenPointInCanvas(canvas, floatPoint)) {
+        floatPoint.addVector(dir);
+    }
+    p2 = floatPoint.copy();
+
+    canvasCtx.beginPath();
+
+    canvasCtx.moveTo(p1.x, p1.y);
+    canvasCtx.lineTo(p2.x, p2.y);
+
+    canvasCtx.stroke();
 }

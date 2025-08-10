@@ -32,17 +32,21 @@ export class Point2DBase {
     }
 }
 
-export function RotateVector(v: Vector2DBase, angleRad: number) {
+export function rotateVector(v: Vector2DBase, angleRad: number) {
     return new Vector2DBase(
         v.x * Math.cos(angleRad) - v.y * Math.sin(angleRad),
         v.x * Math.sin(angleRad) + v.y * Math.cos(angleRad)
     );
 }
 
-export function IsVectorZero(v: Vector2DBase): boolean {
+export function isVectorZero(v: Vector2DBase): boolean {
     return v.length() < 10e-5;
 }
 
 export function dist(p1: Point2DBase, p2: Point2DBase): number {
     return Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y));
+}
+
+export function dist2(p1: Point2DBase, p2: Point2DBase): number {
+    return (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
 }
