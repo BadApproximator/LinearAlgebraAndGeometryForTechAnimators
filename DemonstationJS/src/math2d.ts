@@ -1,16 +1,12 @@
-import { Vector2DBase } from "./baseMath.js";
+import { Point2DBase, Vector2DBase } from "./baseMath.js";
 
 // ----- Algebraical and Geometrical Objects ----- //
 
 type R = number
 
-export class Point2D {
-    x: R = 0;
-    y: R = 0;
-
+export class Point2D extends Point2DBase {
     constructor(x: R = 0, y: R = 0) {
-        this.x = x;
-        this.y = y;
+        super(x, y);
     }
 
     copy(): Point2D {

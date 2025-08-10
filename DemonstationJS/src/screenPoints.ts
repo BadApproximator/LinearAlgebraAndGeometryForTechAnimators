@@ -1,4 +1,4 @@
-import { Vector2DBase } from "./baseMath.js";
+import { Point2DBase, Vector2DBase } from "./baseMath.js";
 import { Point2D, Vector2D } from "./math2d.js";
 
 // ----- Screen points and geom points ----- // 
@@ -6,13 +6,10 @@ import { Point2D, Vector2D } from "./math2d.js";
 const PIXELS_PER_UNIT = 50
 
 // ScreenPoint is not the same as Point2D due to natural reasons, the difference is in the interface (may be appear later)
-export class ScreenPoint {
-    x: number;
-    y: number;
+export class ScreenPoint extends Point2DBase {
 
     constructor(x: number = 0, y: number = 0) {
-        this.x = x;
-        this.y = y;
+        super(x, y);
     }
 
     addVector(v: ScreenVector) {

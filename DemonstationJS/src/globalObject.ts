@@ -15,7 +15,7 @@ export function InitScreenToPointsConverter(canvas: HTMLCanvasElement) {
 export function InitCoordinateSystemRenderer(canvas: HTMLCanvasElement, canvasCtx: CanvasRenderingContext2D, cs: CoordinateSystem2D) {
     coordinateSystemRenderer = new CoodinateSystemRenderer(canvas, canvasCtx, cs);
 
-    canvas.addEventListener("mousemove", coordinateSystemRenderer.mouseMoveHandle);
-    canvas.addEventListener("mousedown", coordinateSystemRenderer.mouseDownHandle);
-    canvas.addEventListener("mouseup", coordinateSystemRenderer.mouseUpHandle);
+    canvas.addEventListener("mousemove", coordinateSystemRenderer.mouseMoveHandle.bind(coordinateSystemRenderer));
+    canvas.addEventListener("mousedown", coordinateSystemRenderer.mouseDownHandle.bind(coordinateSystemRenderer));
+    canvas.addEventListener("mouseup", coordinateSystemRenderer.mouseUpHandle.bind(coordinateSystemRenderer));
 }
