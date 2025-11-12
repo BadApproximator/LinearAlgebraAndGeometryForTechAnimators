@@ -1300,29 +1300,6 @@ If anything has magnitude and direction, its magnitude and direction taken toget
 \setcounter{subpoint}{0}
 
 \subpoint{Базис и компоненты вектора}
-В предыдущем разделе векторы сами по себе были никак не связаны с числами. Можно было лишь применять масшатибрование умножением вектора на скаляр, а также получать число при скалярном умножении.
-
-Но у нас был должок: мы говорили о длине вектора или длине отрезка, но не говорили, как эту длину вычислять. А в скалярном и векторном произведении в формуле фигурируют длины векторов. Помимо длин, там присутствует и угол $\ph$ между векторами, который опять же выражается, например, через арккосинус отношения сторон в нужном треугольнике.
-
-Мы знаем формулу выражения длины вектора через его координаты
-\[
-\mathbf{v} = (x,y,z) \Rightarrow |\mathbf{v}| = \sqrt{x^2 + y^2 + z^2},
-\]
-но эта формула является простым следствием того, что было получено выше
-\[
-|\mathbf{v}| = \sqrt{\mathbf{v} \cdot \mathbf{v}}.
-\]
-Для применения этой формулы нужно либо иметь систему координат и применять теорему Пифагора, либо определять длину через скалярное произведение. Первый вариант плох тем, что систему координат 
-
-Это хитрое место, потому что для вычисления длины отрезка надо задать ''эталонный'' единичный отрезок. Напрашивается разговор о системах координат. И тут происходит замкнутый круг: для определения длин векторов нужно иметь систему координат (или хотя бы единичный отрезок), а для системы координат нужно 
-
-Чтобы разобраться в формуле
-\[
-\mathbf{v} = (x,y,z) \Rightarrow |\mathbf{v}| = \sqrt{x^2 + y^2 + z^2},
-\]
-нужно определить базис множества векторов.
-
-\threestars
 
 Векторы можно скалыдывать, а можно наоборот раскладывать в сумму других векторов. Это бывает крайне удобно во многих ситуациях, в том числе практических.
 
@@ -1369,7 +1346,7 @@ If anything has magnitude and direction, its magnitude and direction taken toget
 
 \noindent\textbf{Вопрос.} Что означает геометрически, если одна из компонент вектора равна нулю? Например, $(0, \alpha_2, \alpha_3)$. 
 
-\subpoint{Покомпонентное сложение векторов}
+\subpoint{Сложение векторов в координатах}
 
 Давайте сложим два вектора $\mathbf{v}$ и $\mathbf{w}$ с компонентами
 \begin{align*}
@@ -1391,7 +1368,7 @@ If anything has magnitude and direction, its magnitude and direction taken toget
 
 \noindent\textbf{Упр.} Сложите три вектора $\mathbf{u} = (1, -1, 3), \mathbf{v} = (0, 0, -5), \mathbf{w} = (-2, 2, 3)$. Изобразите результат в каком-нибудь случайно нарисованном базисе $\mathbf{e}_1, \mathbf{e}_2, \mathbf{e}_3$.
 
-\subpoint{Умножение вектора на скаляр в координатном виде}
+\subpoint{Умножение вектора на скаляр в координатах}
 Возьмем вектор $\mathbf{v} = (\alpha_1, \alpha_2, \alpha_3)$, умножим его на скаляр $\la$ и найдем его компоненты. Для этого произведем операции над вектором $\mathbf{v}$ в разложении по базису:
 \begin{align*}
     \la \mathbf{v} &= \la (\alpha_1 \mathbf{e}_1 + \alpha_2 \mathbf{e}_2 + \alpha_3 \mathbf{e}_3) = \\
@@ -1405,7 +1382,7 @@ If anything has magnitude and direction, its magnitude and direction taken toget
 \mathbf{u} = -4\mathbf{v} + 2\mathbf{w}.
 \]
 
-\subpoint{Скалярное произведение}
+\subpoint{Скалярное произведение в координатах}
 
 Попробуем теперь скалярно перемножить два вектора. Для простоты возьмем двумерный случай:
 \begin{align*}
@@ -1524,11 +1501,47 @@ If anything has magnitude and direction, its magnitude and direction taken toget
 \]
 Указание. Напишите это уравнение в координатном виде (по определению $|\mathbf{v}|$).
 
+\subpoint{Векторное произведение в координатах}
+
+\begin{figure}[H] % [H] означает "строго здесь"
+    \centering
+    \includegraphics[width=0.15\textwidth]{pictures/pct_cross_product.jpg}
+\end{figure}
+
+\noindent\textbf{Вопрос.} Чему равняется $\mathbf{e_x} \times \mathbf{e_y}$, $\mathbf{e_x} \times \mathbf{e_z}$, $\mathbf{e_y} \times \mathbf{e_z}$?
+
+\noindent\textbf{Вопрос.} Чему равняется $\mathbf{e_x} \times \mathbf{e_z}$, $\mathbf{e_z} \times \mathbf{e_y}$?
+
+\noindent\textbf{Вопрос.} Чему равняется $\mathbf{e_x} \times \mathbf{e_x}$, $\mathbf{e_y} \times \mathbf{e_y}$, $\mathbf{e_z} \times \mathbf{e_z}$?
+
+\noindent\textbf{Вопрос.} Что геометрически из себя представляет множество решений векторного уравнения $\mathbf{v} \times \mathbf{x} = 0$?
+
+Зная ответы на эти вопросы, мы спокойно можем найти координатную формулу для векторного произведения. Для этого нужно проделать аналогичную процедуру, которую делали для скалярного произведения.
+
+Итак, возьмем два вектора
+\begin{align*}
+    &\mathbf{v} = x_1 \mathbf{e}_x + y_1 \mathbf{e}_y + z_1 \mathbf{e}_z = (x_1, y_1, z_1),\\
+    &\mathbf{w} = x_2 \mathbf{e}_x + y_2 \mathbf{e}_y + z_2 \mathbf{e}_z = (x_2, y_2, z_2),
+\end{align*}
+и векторно перемножим их
+\begin{align*}
+    \mathbf{v} \times \mathbf{w} &= (x_1 \mathbf{e}_x + y_1 \mathbf{e}_y + z_1 \mathbf{e}_z) \times (x_2 \mathbf{e}_x + y_2 \mathbf{e}_y + z_2 \mathbf{e}_z) = \\
+    & = x_1 x_2 \underbrace{(\mathbf{e}_x \times \mathbf{e}_x)}_{=0} + x_1 y_2 (\mathbf{e}_x \times \mathbf{e}_y) + x_1 z_2 (\mathbf{e}_x \times \mathbf{e}_z) + \\
+    & + y_1 x_2 \underbrace{(\mathbf{e}_y \times \mathbf{e}_x)}_{=-(\mathbf{e}_x \times \mathbf{e}_y)} + y_1 y_2 \underbrace{(\mathbf{e}_y \times \mathbf{e}_y)}_{=0} + y_1 z_2 (\mathbf{e}_y \times \mathbf{e}_z) + \\
+    & + z_1 x_2 \underbrace{(\mathbf{e}_z \times \mathbf{e}_x)}_{=-\mathbf{e}_x \times \mathbf{e}_z} + z_1 y_2 \underbrace{(\mathbf{e}_z \times \mathbf{e}_y)}_{=-\mathbf{e}_y \times \mathbf{e}_z} + z_1 z_2 \underbrace{(\mathbf{e}_z \times \mathbf{e}_z)}_{=0} =\\
+    & = (x_1 y_2 - y_1 x_2) \underbrace{\mathbf{e}_x \times \mathbf{e}_y}_{= \mathbf{e}_z} + (x_1 z_2 - z_1 x_2) \underbrace{\mathbf{e}_x \times \mathbf{e}_z}_{= -\mathbf{e}_y} + (y_1 z_2 - z_2 y_1)\underbrace{\mathbf{e}_y \times \mathbf{e}_z}_{= \mathbf{e}_x} = \\
+    & = (x_1 y_2 - y_1 x_2) \mathbf{e}_z - (x_1 z_2 - z_1 x_2) \mathbf{e}_y + (y_1 z_2 - z_2 y_1) \mathbf{e}_x.
+\end{align*}
+То есть в координатной записи получим
+\[
+\mathbf{v} \times \mathbf{w} = (y_1 z_2 - z_2 y_1, z_1 x_2 - x_1 z_2, x_1 y_2 - y_1 x_2).
+\]
+
 \subpoint{Линейная интерполяция между двумя векторами}
 
-Рассмотрим два вектора $\mathbf{v},\mathbf{w} \in \R^3$. Задача заключается в том, чтобы задать переход от $\mathbf{v}$ к $\mathbf{w}$ по прямой линии.
+Рассмотрим два вектора $\mathbf{v},\mathbf{w}$. Задача заключается в том, чтобы задать переход от $\mathbf{v}$ к $\mathbf{w}$ по прямой линии.
 
-Возьмем вектор, который имеет направление от конца $v$ к концу $w$. Этим вектором является вектор $w-v$. Его длина это длина между $\mathbf{v}$ и $\mathbf{w}$. Поэтому можем задать вектор $\mathbf{u}(t)$, зависящий от параметра $t \in [0,1]$ следующим образом:
+Возьмем вектор, который имеет направление от конца $\mathbf{v}$ к концу $\mathbf{w}$. Этим вектором является вектор $\mathbf{w}-\mathbf{v}$. Его длина это длина между $\mathbf{v}$ и $\mathbf{w}$. Поэтому можем задать вектор $\mathbf{u}(t)$, зависящий от параметра $t \in [0,1]$ следующим образом:
 \[
 \mathbf{u}(t) = \mathbf{v} + t(\mathbf{w}-\mathbf{v}).
 \]
@@ -1545,20 +1558,6 @@ If anything has magnitude and direction, its magnitude and direction taken toget
 \mathbf{u}(t) = (1-t)\mathbf{v} + t\mathbf{w}.
 \]
 
-\subpoint{Векторное произведение}
-
-\begin{figure}[H] % [H] означает "строго здесь"
-    \centering
-    \includegraphics[width=0.15\textwidth]{pictures/pct_cross_product.jpg}
-\end{figure}
-
-\noindent\textbf{Вопрос.} Чему равняется $\mathbf{e_1} \times \mathbf{e_2}$, $\mathbf{e_1} \times \mathbf{e_3}$, $\mathbf{e_2} \times \mathbf{e_3}$?
-
-\noindent\textbf{Вопрос.} Чему равняется $\mathbf{e_1} \times \mathbf{e_1}$, $\mathbf{e_2} \times \mathbf{e_2}$, $\mathbf{e_3} \times \mathbf{e_3}$?
-
-\noindent\textbf{Вопрос.} Что геометрически из себя представляет множество решений уравнения $\mathbf{v} \times \mathbf{x} = 0$?
-
-Мы не дали определения векторного произведения в виде формулы на координаты, однако для ответы на эти вопросы этого не требуется. Далее, в разделе о кватернионах, мы естественным образом получим явную формулу.
 
 \newpage
 \section*{Матрицы}\addcontentsline{toc}{section}{Матрицы}
