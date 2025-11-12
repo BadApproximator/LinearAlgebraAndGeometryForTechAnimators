@@ -1503,6 +1503,20 @@ If anything has magnitude and direction, its magnitude and direction taken toget
 
 \subpoint{Векторное произведение в координатах}
 
+Здесь пришло время еще несколько уточнить насчет выбора базиса. Дело в том, что ортонормированный базис отличаться с точки зрения векторного произведения или, как говорят, \textit{ориентацией}.
+
+Допустим у нас есть два ортонормированных вектора $\mathbf{e_x}, \mathbf{e_y}$. Как выбрать третий вектор $\mathbf{e_z}$? Есть два способа, которые на языке векторных произведений выглядит так:
+\[
+\mathbf{e_z} = \pm \mathbf{e_x} \times \mathbf{e_y}.
+\]
+
+Оба вектора будут единичными, оба пермендикулярны плоскости векторов $\mathbf{e_x}$ и $\mathbf{e_y}$. В случае, когда $\mathbf{e_z} = \mathbf{e_x} \times \mathbf{e_y}$ говорят, что базис положительно ориентирован, а если $\mathbf{e_z} = -\mathbf{e_x} \times \mathbf{e_y}$ -- отрицательно.
+
+Для стандартного базиса традиционно выбирается положительная ориентация, т.е.
+\[
+\mathbf{e_z} = \mathbf{e_x} \times \mathbf{e_y}.
+\]
+
 \begin{figure}[H] % [H] означает "строго здесь"
     \centering
     \includegraphics[width=0.15\textwidth]{pictures/pct_cross_product.jpg}
@@ -1534,7 +1548,7 @@ If anything has magnitude and direction, its magnitude and direction taken toget
 \end{align*}
 То есть в координатной записи получим
 \[
-\mathbf{v} \times \mathbf{w} = (y_1 z_2 - z_2 y_1, z_1 x_2 - x_1 z_2, x_1 y_2 - y_1 x_2).
+\mathbf{v} \times \mathbf{w} = (y_1 z_2 - z_2 y_1,\ z_1 x_2 - x_1 z_2,\ x_1 y_2 - y_1 x_2).
 \]
 
 \subpoint{Линейная интерполяция между двумя векторами}
